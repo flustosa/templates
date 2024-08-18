@@ -93,7 +93,7 @@ alias la='ls -A'
 alias l='ls -CF'
 alias cd..='cd ..'
 alias cat='batcat'
-alias tmux ls='tmux list-sessions'
+# alias tmux ls='tmux list-sessions'
 
 # Add an "alert" alias for long running commands.  Use like so:
 #   sleep 10; alert
