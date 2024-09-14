@@ -4,7 +4,7 @@ timestamp () {
 } 
 auto_update () {
 	timestamp && echo -e "[INFO] - Iniciando atualizacao..."
-	/usr/bin/apt apt update && /usr/bin/apt apt -y upgrade
+	/usr/bin/apt update && /usr/bin/apt -y upgrade
 	timestamp && echo -e "[INFO] - Fim da atualizacao."
 } 
 auto_update >> /var/log/apt/myupdates.log
