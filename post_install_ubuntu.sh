@@ -287,17 +287,6 @@ setup_vim () {
 
 
 ################# AUTO UPDATE  + CRONTAB #######################
-AUTOUPDATE='#!/usr/bin/env bash
-timestamp () {
-	date +%d/%m/%y"-"%X" (GMT"%Z")"
-} 
-auto_update () {
-	timestamp && echo -e "[INFO] - Iniciando atualizacao..."
-	/usr/bin/apt apt update && /usr/bin/apt apt -y upgrade
-	timestamp && echo -e "[INFO] - Fim da atualizacao."
-} 
-auto_update >> /var/log/apt/myupdates.log
-'
 
 create_cron () {
 	CRON="30 0 * * * $PWD/backup.sh"
@@ -309,8 +298,7 @@ create_cron () {
 }
 
 create_autoupdate () {
-	touch ./autoupdate.sh
-	printf "%s" "$AUTOUPDATE" > ./autoupdate.sh
+	curl -o ./autoupdate.sh https://raw.githubusercontent.com/flustosa/templates/master/autoupdate.sh
 	chmod +x ./autoupdate.sh
 	create_cron	
 }
