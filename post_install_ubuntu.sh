@@ -51,6 +51,9 @@ INFO="\e[1;36m[INFO]\e[0m" 		# Cyan + bold
 ERROR="\e[1;91m[ERROR]\e[0m" 		# light red + bold
 ACTION="\e[1;92m[ACTION]\e[0m" 		# light green + bold
 DOWNLOAD_FOLDER_PROGRAMS="$HOME/Downloads/programs"
+
+### PARAMETERS 
+
 REQUIREMENTS=(
 	sudo
 	wget
@@ -66,8 +69,7 @@ APT_PROGRAMS_TO_INSTALL=(
 	make
 	wakeonlan	
 	xtail
-	#snapd
-	#tmux
+	tmux
 	bat # visual for cat -> batcat
  	neovim
   	tldr
@@ -82,30 +84,8 @@ SNAP_PROGRAMS_TO_INSTALL=(
 )
 
 
-SNAP_PROGRAMS=()
-
-
-confirm () {
-        read confirm && [[ $confirm == [yYsS] ]]
-}
-
-### FUNCTION NOT YET IMPLEMENTED
-check_apt_programs () {
-RESPONSE='y'
-for program in ${APT_PROGRAMS_TO_INSTALL[@]}; do
-	echo -e "$ACTION - Install $program? [Y/n]"
- 	read RESPONSE
-  	if [[ ! ${RESPONSE,,} = "y" ]]; then
-  		echo -e "$INFO - Following to the next program..."
-   	else
-    	SNAP_PROGRAMS+=($program)
-	 	echo $SNAP_PROGRAMS
-   	fi
-echo $SNAP_PROGRAMS
-done
-}
-
 ### REQUIREMENTS TEST ###
+
 connection_test () {
 	echo -e "$INFO - Testing connection..."
 	if ! sudo ping -c 1 8.8.8.8 -q &> /dev/null; then
@@ -115,6 +95,8 @@ connection_test () {
 		echo -e "$INFO - Internet connection working properly."
 	fi
 }
+
+
 check_basic_programs () {
 	echo -e "$INFO - Checking basic programs..."
 	for program in ${REQUIREMENTS[@]}; do
@@ -127,6 +109,8 @@ check_basic_programs () {
 		fi
 	done
 }
+
+
 requirementes_test () {
 	echo -e "$INFO - Testing requirements..."
 	connection_test
@@ -134,16 +118,21 @@ requirementes_test () {
 	
 }
 
+
 ### FUNCTIONS ###
 
 add_i386_architecture () {
 	echo -e "$INFO - Adding i386 architecture..."
 	sudo dpkg --add-architecture i386
 } 
+
+
 update_repositories  () {
 	echo -e "$INFO - Updating repositories..."
 	sudo apt update
 }
+
+
 download_deb_packages () {
 	[[ ! -d "$DOWNLOAD_FOLDER_PROGRAMS"  ]] && mkdir -p "$DOWNLOAD_FOLDER_PROGRAMS" # -p creates parent directories if needded
 	for url in ${DEB_PROGRAMS_TO_INSTALL[@]}; do
@@ -160,8 +149,11 @@ download_deb_packages () {
 		fi
 	done
 }
+
+
 install_apt_packages () {
-	for program in ${APT_PROGRAMS_TO_INSTALL[@]}; do
+	check_apt_programs
+	for program in ${APT_LIST[@]}; do
 	  if ! dpkg -l | grep -q $program; then
   	    echo -e "$INFO - Instalando o $program..."
 	    sudo apt install $program -y
@@ -170,6 +162,8 @@ install_apt_packages () {
 	  fi
 	done
 	}
+
+
 install_snap_packages () {  	## para instalacao de aplicativos via snap, verificar instalacao do requisito##
 	if [[ ! -x $(which snapd) ]]; then
 		echo -e "$INFO - Snap nao esta instalado."
@@ -294,15 +288,14 @@ create_cron () {
 	rm ./tempcron
 	(sudo crontab -l 2>/dev/null 1>./tempcron) && (printf "\n" >> ./tempcron && printf "%s" "$CRON" >> ./tempcron && printf "\n" >>./tempcron)
 	sudo crontab ./tempcron
-	
 }
+
 
 create_autoupdate () {
 	curl -o ./autoupdate.sh https://raw.githubusercontent.com/flustosa/templates/master/autoupdate.sh
 	chmod +x ./autoupdate.sh
 	create_cron	
 }
-
 
 
 ################## ATUALIZACAO FINAL ##################
@@ -319,8 +312,8 @@ last_update () {
 
 echo -e "$INFO - Iniciando a instalacao e configuracao dos programas essenciais no Ubuntu 22.04."
 declare -A options
-options[update_repositories ]='Atualizar repositórios? [Y/N]: '
-options[requirementes_test]='Testar requisitos [Y/N]?: '
+options[update_repositories]='Atualizar repositórios? [Y/N]: '
+# options[requirementes_test]='Testar requisitos [Y/N]?: '
 options[add_sudo_user]='Adicionar usuário SUDO? [Y/N]: '
 options[setup_git]='Configurar usuário git? [Y/N]: '
 options[setup_vim]='Configurar o VIM? [Y/N]: '
@@ -334,6 +327,21 @@ options[last_update]='Realizar limpeza dos pactoes não utilizados? [Y/N]: '
 
 ################## FUNCOES PARA EXECUCAO ##################
 
+confirm () {
+        read confirm && [[ $confirm == [yYsS] ]]
+}
+
+
+check_apt_programs () {
+
+        for program in ${APT_PROGRAMS_TO_INSTALL[@]}; do
+                echo -e "$ACTION - Install $program? [Y/n]"
+		if confirm; then
+                        APT_LIST+=("$program")
+                fi
+        done
+}
+
 check_functions () {
         echo -e "Confirme a configuração em cada etapa:"
         for option in ${!options[@]}; do
@@ -343,6 +351,8 @@ check_functions () {
                 fi  
 	done
 }
+
+requirementes_test 
 
 check_functions
 
