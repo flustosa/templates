@@ -5,18 +5,23 @@
 ### Conta no healthcheck.io (ou serviço auto-hospedado)
 ### Executar script com privilégios de root (sudo ou root)
 
+# Carregando as variáveis PROJECT_NAME e PING_KEY do healthcheck.io
+set -a
+source ./.env
+set +a
+
 health_check () {
         ENDPOINT="https://hc-ping.com"
-        UUID="SEU-UUID-"
 
         case $1 in
-                start) curl -fsS --retry 3 $ENDPOINT/$UUID/start > /dev/null ;;
-                fail) curl -fsS --retry 3 $ENDPOINT/$UUID/fail > /dev/null ;;
-                1) curl -fsS --retry 3 $ENDPOINT/$UUID/fail > /dev/null ;;
-                success) curl -fsS --retry 3 $ENDPOINT/$UUID > /dev/null ;;
-                0) curl -fsS --retry 3 $ENDPOINT/$UUID/success > /dev/null ;;
+                start) curl -fsS --retry 3 $ENDPOINT/$PING_KEY/$PROJECT_NAME/\start > /dev/null ;;
+                fail) curl -fsS --retry 3 $ENDPOINT/$PING_KEY/$PROJECT_NAME/fail > /dev/null ;;
+                1) curl -fsS --retry 3 $ENDPOINT/$PING_KEY/$PROJECT_NAME/fail > /dev/null ;;
+                success) curl -fsS --retry 3 $ENDPOINT/$PING_KEY/$PROJECT_NAME> /dev/null ;;
+                0) curl -fsS --retry 3 $ENDPOINT/$PING_KEY/$PROJECT_NAME/success > /dev/null ;;
         esac
 }
+
 
 auto_update () {     
     LOGFILE="/var/log/apt-update.log"
