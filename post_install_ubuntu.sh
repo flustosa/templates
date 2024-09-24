@@ -283,7 +283,8 @@ setup_vim () {
 ################# AUTO UPDATE  + CRONTAB #######################
 
 create_cron () {
-	CRON="30 0 * * * $PWD/backup.sh"
+	CRON_PATH="/usr/local/sbin/"
+	CRON="30 0 * * * /usr/local/sbin/autoupdate.sh"
 	cp ./tempcron ./tempcron.copy 2>/dev/null
 	rm ./tempcron
 	(sudo crontab -l 2>/dev/null 1>./tempcron) && (printf "\n" >> ./tempcron && printf "%s" "$CRON" >> ./tempcron && printf "\n" >>./tempcron)
@@ -295,6 +296,19 @@ create_autoupdate () {
 	curl -o ./autoupdate.sh https://raw.githubusercontent.com/flustosa/templates/master/autoupdate.sh
 	chmod +x ./autoupdate.sh
 	create_cron	
+	echo -e "$ACTION - Deseja criar um alerta no healthcheck.io? [Y/n]"
+	if confirm; then
+		setup_healthcheck_io
+	fi
+
+}
+
+setup_healthcheck_io () {
+	echo -e "$ACTION - Informe a chave (PING_KEY) para configuração dos alertas no healthcheck.io:"
+	read PING_KEY
+	printf "PING_KEY=$PING_KEY" > /usr/local/sbin/.env
+	printf "SLUG=$(hostname)" >> /usr/local/sbin/.env
+
 }
 
 
