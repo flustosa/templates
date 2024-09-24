@@ -308,10 +308,9 @@ setup_healthcheck_io () {
 	
 	printf "PING_KEY=$PING_KEY" > $CRON_PATH/.env
 	printf "\n" >> $CRON_PATH/.env
-	
 	# Use system's hostname as check's slug
 	SLUG=$(hostname)
-	printf $SLUG >> $CRON_PATH/.env
+	printf "SLUG=$SLUG" >> $CRON_PATH/.env
 	
 	# Construct a ping URL and append "?create=1" at the end:
 	URL=https://hc-ping.com/$PING_KEY/$SLUG?create=1
