@@ -7,7 +7,7 @@
 
 # Carregando as variáveis SLUG e PING_KEY do healthcheck.io
 set -a
-source ./.env
+source .env
 set +a
 
 health_check () {
