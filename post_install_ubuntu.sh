@@ -376,6 +376,6 @@ check_functions () {
 }
 
 requirementes_test 
-
+update_repositories
 check_functions
 
