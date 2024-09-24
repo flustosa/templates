@@ -40,9 +40,8 @@
 # - SSH Setup: Change default port (22) for a higher one / Disable root access via SSH
 # - update .bashrc and create folders () + .tmux.conf
 # - .bashrc guide https://www.freecodecamp.org/news/vimrc-configuration-guide-customize-your-vim-editor/
-# - config files for tmux
 # - Create autoupdate script -> include log | after -> centralized logging
-# - curl autoupdate.sh file and update crontab to execute daily
+# - Update the crontab script to check if there is already a line with the autoupdate.sh
 # - Configure Python environment: pip, venv
 # - Add SSH key configuration for Github access (also check "push" alias in .vimrc) 
 
