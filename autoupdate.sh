@@ -5,7 +5,7 @@
 ### Conta no healthcheck.io (ou serviço auto-hospedado)
 ### Executar script com privilégios de root (sudo ou root)
 
-# Carregando as variáveis PROJECT_NAME e PING_KEY do healthcheck.io
+# Carregando as variáveis SLUG e PING_KEY do healthcheck.io
 set -a
 source ./.env
 set +a
@@ -14,11 +14,11 @@ health_check () {
         ENDPOINT="https://hc-ping.com"
 
         case $1 in
-                start) curl -fsS --retry 3 $ENDPOINT/$PING_KEY/$PROJECT_NAME/\start > /dev/null ;;
-                fail) curl -fsS --retry 3 $ENDPOINT/$PING_KEY/$PROJECT_NAME/fail > /dev/null ;;
-                1) curl -fsS --retry 3 $ENDPOINT/$PING_KEY/$PROJECT_NAME/fail > /dev/null ;;
-                success) curl -fsS --retry 3 $ENDPOINT/$PING_KEY/$PROJECT_NAME> /dev/null ;;
-                0) curl -fsS --retry 3 $ENDPOINT/$PING_KEY/$PROJECT_NAME/success > /dev/null ;;
+                start) curl -fsS --retry 3 $ENDPOINT/$PING_KEY/$SLUG/\start > /dev/null ;;
+                fail) curl -fsS --retry 3 $ENDPOINT/$PING_KEY/$SLUG/fail > /dev/null ;;
+                1) curl -fsS --retry 3 $ENDPOINT/$PING_KEY/$SLUG/fail > /dev/null ;;
+                success) curl -fsS --retry 3 $ENDPOINT/$PING_KEY/$SLUG> /dev/null ;;
+                0) curl -fsS --retry 3 $ENDPOINT/$PING_KEY/$SLUG/success > /dev/null ;;
         esac
 }
 
@@ -47,8 +47,9 @@ auto_update () {
     fi
 
     # Definindo variáveis de ambiente
-    export NEEDRESTART_MODE=a
-    export DEBIAN_FRONTEND=noninteractive
+    export NEEDRESTART_MODE=a &&
+    export DEBIAN_FRONTEND=noninteractive &&
+    export APT_LISTCHANGES_FRONTEND=none &&
 
     log "Iniciando apt-get update."
     sudo apt-get -qy update >> "$LOGFILE" 2>&1 || return 1  # Se falhar, retorna 1
