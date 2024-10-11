@@ -1,0 +1,10 @@
+services:
+  hr-convert:
+    image: zelon88/hrconvert2:latest
+    ports:
+      - '8082:80'
+      - '8445:443'
+        #volumes:
+      #- ./logs:/logs/
+      #environment:
+      #- ABCDE=ABCDE
