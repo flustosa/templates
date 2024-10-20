@@ -37,7 +37,7 @@
 #
 # -------------------------------FUTURE IMPLEMENTATIONS----------------------------------------- #
 # - config wakeonlan
-# - SSH Setup: Change default port (22) for a higher one / Disable root access via SSH
+# - SSH Setup: 
 # - update .bashrc and create folders () + .tmux.conf
 # - .bashrc guide https://www.freecodecamp.org/news/vimrc-configuration-guide-customize-your-vim-editor/
 # - Create autoupdate script -> include log | after -> centralized logging
@@ -63,12 +63,13 @@ APT_PROGRAMS_TO_INSTALL=(
 	git
 	openssh-server
 	openssh-client
+	fail2ban
 	htop
 	ethtool
 	make
-	wakeonlan	
-	xtail
-	tmux
+	#wakeonlan	
+	#xtail
+	#tmux
 	bat # visual for cat -> batcat
  	neovim
   	tldr
@@ -117,6 +118,9 @@ requirementes_test () {
 	
 }
 
+warnings () {
+	echo -e "\n \n $INFO - After installing Open SSH, remember to adjust the /etc/ssh/sshd_config and setup properly the 'fail2ban'. More info in:\n https://github.com/flustosa/wiki/blob/main/linux/ssh.md"
+}
 
 ### FUNCTIONS ###
 
@@ -378,4 +382,4 @@ check_functions () {
 requirementes_test 
 update_repositories
 check_functions
-
+warnings
