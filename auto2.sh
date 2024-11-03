@@ -11,7 +11,6 @@ source .env
 set +a
 
 health_check () {
-
         ENDPOINT="https://hc-ping.com"
 
         case $1 in
@@ -20,14 +19,26 @@ health_check () {
                 1) curl -fsS -m 10 --retry 3 $ENDPOINT/$PING_KEY/$SLUG/fail > /dev/null ;;
                 success) curl -fsS -m 10 --retry 3 $ENDPOINT/$PING_KEY/$SLUG> /dev/null ;;
                 0) curl -fsS -m 10 --retry 3 $ENDPOINT/$PING_KEY/$SLUG/success > /dev/null ;;
-                logg) curl -fsS -m 10 --retry 3 --data-raw "$m" $ENDPOINT/$PING_KEY/$SLUG/log > /dev/null ;;
+                log) curl -fsS -m 10 --retry 3 --data-raw "$m" $ENDPOINT/$PING_KEY/$SLUG/log > /dev/null ;;
+
         esac
+}
+
+teste () {
+
+	if [ -f /var/run/reboot-required ]; then
+		m="Reboot required. Rebooting system... After reboot, will try to ping healthcheck..."
+		health_check log
+		shutdown -r now
+	else 
+    	return 0  # Sucesso
+	fi
 
 }
 
+teste
 
 auto_update () {     
-
     LOGFILE="/var/log/apt-update.log"
 
     log() {
@@ -41,6 +52,8 @@ auto_update () {
 
     sudo lsof /var/cache/apt/archives/lock > /dev/null 2>&1
     LOCK_STATUS2=$?
+
+
 
     # Verifica se o apt ou dpkg está em execução
     if pgrep -x "apt-get" > /dev/null || pgrep -x "dpkg" > /dev/null; then
@@ -70,30 +83,32 @@ auto_update () {
     log "Concluído apt-get clean."
 
 	if [ -f /var/run/reboot-required ]; then
-		m="Reboot required. Rebooting system... After reboot, will try to ping healthcheck..."
-		touch /usr/local/sbin/rebooted-via-update-script # Arquivo de controle da inicializacao
-		health_check logg
+		log "Reboot required. Rebooting system... After reboot, will try to ping healthcheck..."
+		return 2
 		shutdown -r now
 	else 
     	return 0  # Sucesso
 	fi
 
+
+
+
 }
 
-
 cron_update () {
-	
     health_check start  # Inicia o health check
+
     auto_update  # Executa o processo de atualização
     UPDATE_STATUS=$?  # Captura o status de retorno do auto_update
 
     if [ $UPDATE_STATUS -eq 0 ]; then
         health_check success  # Envia notificação de sucesso
+	elif [ $UPDATE_STATUS -eq 2 ]; then
+        health_check fail  # Envia notificação de falha
    	else
         health_check fail  # Envia notificação de falha
     fi
-
 }
 
-cron_update  # Executa o cron job
+# cron_update  # Executa o cron job
 
