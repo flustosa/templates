@@ -1,9 +1,35 @@
 #!/usr/bin/env bash
 
-# SCRIPT DE ATUALIZACAO (Testado no Ubuntu 22.04 LTS e 24.04 LTS)
-## REQUISITOS PARA USO DO SCRIPT
-### Conta no healthcheck.io (ou serviço auto-hospedado)
-### Executar script com privilégios de root (sudo ou root)
+# autoupdate.sh - Autoupdate/upgrade daily Ubuntu 
+#
+# Website:       https://homelab.app.br
+# Author:        Felipe Lustosa
+# Maintenance:   Felipe Lustosa
+#
+# ------------------------------------------------------------------------ #
+# WHAT IT DOES?
+# This script run apt-update and apt-upgrade daily using crontab and restart the system if needed. 
+# 
+# CONFIGURATION?
+# It's configured by ./init_ubuntu.sh
+#
+# ------------------------------------------------------------------------ #
+# Changelog:
+#
+#   v0.1 18/06/2024, Felipe Lustosa:
+#     - First version with comments!
+#   v1.0 01/11/2024, Felipe Lustosa:
+#     - Added reboot function
+#
+# ------------------------------------------------------------------------ #
+# Tested on:
+#   Ubuntu 22.04 and 24.04 LTS
+#   bash 5.1.16
+# ------------------------------------------------------------------------ #
+#
+
+
+
 
 # Carregando as variáveis SLUG e PING_KEY do healthcheck.io
 set -a
