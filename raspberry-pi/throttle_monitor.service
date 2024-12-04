@@ -1,0 +1,10 @@
+[Unit]
+Description=Raspberry Pi Throttle Monitor
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/sbin/throttle_monitor.py
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
