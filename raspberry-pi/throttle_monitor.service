@@ -2,7 +2,8 @@
 Description=Raspberry Pi Throttle Monitor
 
 [Service]
-ExecStart=/usr/bin/python3 /usr/local/sbin/throttle_monitor.py
+EnvironmentFile=/usr/local/sbin/.env
+ExecStart=/usr/bin/python3 /usr/local/sbin/throttle_monitor.py "$GATUS_TOKEN"
 Restart=always
 User=root
 
