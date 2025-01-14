@@ -29,12 +29,23 @@
 #
 
 
-
-
 # Carregando as variáveis SLUG e PING_KEY do healthcheck.io
-set -a
-source .env
-set +a
+
+while IFS= read -r line || [ -n "$line" ]; do
+  # Ignorar linhas vazias ou começando com #
+  [[ -z "$line" || "$line" == \#* ]] && continue
+  
+  # Extração da chave e valor, removendo aspas ao redor do valor, se houver
+  key=$(echo "$line" | cut -d '=' -f 1)
+  value=$(echo "$line" | cut -d '=' -f 2-)
+
+  # Remover aspas simples ou duplas ao redor do valor
+  value=$(echo "$value" | sed -e 's/^["'\'']//;s/["'\'']$//')
+
+  # Exportar a variável
+  export "$key=$value"
+done < /usr/local/sbin/.env
+
 
 health_check () {
 
@@ -69,7 +80,7 @@ auto_update () {
     LOCK_STATUS2=$?
 
     # Verifica se o apt ou dpkg está em execução
-    if pgrep -x "apt-get" > /dev/null || pgrep -x "dpkg" > /dev/null; then
+    if pgrep -x "apt" > /dev/null || pgrep -x "dpkg" > /dev/null; then
         log "Outro processo do apt está em execução. Abortando."
         return 1  # Falha
     fi
@@ -98,7 +109,7 @@ auto_update () {
 	if [ -f /var/run/reboot-required ]; then
 		m="Reboot required. Rebooting system... After reboot, will try to ping healthcheck..."
 		touch /usr/local/sbin/rebooted-via-update-script # Arquivo de controle da inicializacao
-		health_check logg
+		health_check logg $m
 		shutdown -r now
 	else 
     	return 0  # Sucesso
@@ -108,7 +119,6 @@ auto_update () {
 
 
 cron_update () {
-	
     health_check start  # Inicia o health check
     auto_update  # Executa o processo de atualização
     UPDATE_STATUS=$?  # Captura o status de retorno do auto_update
