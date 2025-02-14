@@ -66,7 +66,7 @@ run_backup() {
 	run_command "cd $VAULT_DIR" "" "Falha ao acessar o diretório $VAULT_DIR" &&
 	run_command "docker compose stop" "VaultWarden - Stack Stopped" "Falha ao parar a stack do Docker" &&
 	run_command "tar cvzf $VAULT_PATH/$FILENAME $VAULT_DIR/vw-data" "Vaultwarden - Arquivo de backup criado" "Falha ao criar o backup" &&
-	run_command "rclone copy $VAULT_PATH/$FILENAME 'gdrive:/ZZ. BACKUPS'" "VaultWarden - Content Backed Upto Google Drive" "Falha ao copiar o backup para o Google Drive" ||  return 1
+	run_command "rclone copy $VAULT_PATH/$FILENAME 'gdrive:/ZZ. BACKUPS/Vault'" "VaultWarden - Content Backed Upto Google Drive" "Falha ao copiar o backup para o Google Drive" ||  return 1
 	
 }
 
