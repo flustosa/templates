@@ -1,6 +1,12 @@
 #!/bin/bash
 
-### 
+# DEPENDENCIAS
+# - msmtp 
+
+
+# CONFIGURACOES
+# - msmtp default config file (/etc/msmtprc) 
+# - .env: WEBHOOK_URL, EMAIL_TO, EMAIL_FROM, DOCKER_HUB_PASS (key to pull images above limit without auth)
 
 set -a
 source .env
@@ -9,10 +15,11 @@ set +a
 # Função para enviar notificação via webhook
 send_webhook() {
     local message=$1
-    curl -X POST -H "Content-Type: application/json" -d "{\"text\": \"$message\"}" $WEBHOOK_URL
+    curl -X POST -H "Content-Type: application/json" -d "{\"text\": \"$message\"}" "$WEBHOOK_URL"
 }
 
 # Função para enviar notificação via email
+
 send_email() {
     server_name=$(uname -n)
     local subject="Docker update: $server_name"
@@ -84,6 +91,7 @@ check_for_updates() {
 	echo "Buscando imagens Docker no servidor..."
 	docker_images=$(docker images --format "{{.Repository}}:{{.Tag}}")
 
+	local docker_list=$(docker ps --format "Image Name: {{.Names}}\nStatus:{{.Status}}\nImage:{{.Image}}\n")
 	local updated_images=()
 	local error_images=()
 	local ignored_images=()
@@ -92,7 +100,7 @@ check_for_updates() {
 	    image_name=$(echo $image | cut -d ':' -f 1)
 	    current_tag=$(echo $image | cut -d ':' -f 2)
 	    echo "Verificando atualizações para a imagem $image_name ($current_tag)..."
-	    if [[ "$current_tag" = "latest" || "$current_tag" = "release" ]]; then
+	    if [[ "$current_tag" = "latest" || "$current_tag" = "release" || "$current_tag" = "stable" ]]; then
 		pull_output=$(docker pull $image 2>&1)
 		if [[ $? -eq 0 ]]; then
 			if [[ "$pull_output" == *"Image is up to date"* ]]; then
@@ -108,19 +116,30 @@ check_for_updates() {
 	    fi
 	done
 
-	#local body=$(IFS=$'\n'; echo "${log_entries[*]}")
 	local body=""
+
+	    if [[ ${#docker_list[@]} -gt 0 ]]; then
+		body+="\nContainers encontrados:\n$(IFS=$'\n'; echo "${docker_list[*]}")\n\n"
+	    else
+		body+="\nContainers encontrados:\nNão foram encontrados containers ativos no servidor.\n\n"
+	    fi
 
 	    if [[ ${#updated_images[@]} -gt 0 ]]; then
 		body+="\nImagens Atualizadas:\n$(IFS=$'\n'; echo "${updated_images[*]}")\n\n"
+	    else
+		body+="\nImagens Atualizadas:\nNão foram encontradas imagens para atualização.\n\n"
 	    fi
 
 	    if [[ ${#error_images[@]} -gt 0 ]]; then
 		body+="\nErros ao Atualizar Imagens:\n$(IFS=$'\n'; echo "${error_images[*]}")\n\n"
+	    else
+		body+="\nErros ao Atualizar Imagens:\nNão houve erros ao atualizar as Imagens.\n\n"
 	    fi
 
 	    if [[ ${#ignored_images[@]} -gt 0 ]]; then
 		body+="\nImagens Ignoradas:\n$(IFS=$'\n'; echo "${ignored_images[*]}")\n"
+	    else
+		body+="\nImagens Ignoradas:\nNenhuma imagem foi ignorada.\n\n"
 	    fi
 
 	body+="$(update_compose)"
