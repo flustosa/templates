@@ -198,6 +198,21 @@ check_for_updates() {
         body+="<p>Nenhum docker compose para subir.</p>"
     fi
 
+    # Lista de imagens
+        body+="<h2>Lista de Imagens</h2>"
+	    body+="<table border='1' cellpadding='5' cellspacing='0' style='border-collapse: collapse;'>"
+	        body+="<tr><th>REPOSITORY</th><th>TAG</th><th>IMAGE ID</th><th>CREATED</th></tr>"
+
+		    local docker_images=$(docker images --format "{{.Repository}}|{{.Tag}}|{{.ID}}|{{.CreatedSince}}" | tr -s ' ' | tr -d '\r')
+		        while IFS='|' read -r repository tag image_id created; do
+				        if [[ "$repository" != "<none>" ]]; then # Ignora imagens sem repositório/tag
+						            body+="<tr><td>$repository</td><td>$tag</td><td>$image_id</td><td>$created</td></tr>"
+							            fi
+								        done <<< "$docker_images"
+
+									    body+="</table>"
+
+
     local prune_results=$(prune_images)
     body+="<h2>Limpeza de Imagens</h2>"
     if [[ -n "$prune_results" ]]; then
