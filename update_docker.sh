@@ -7,9 +7,9 @@
 # CONFIGURACOES
 # - msmtp default config file (/etc/msmtprc) 
 # - .env: WEBHOOK_URL, EMAIL_TO, EMAIL_FROM, DOCKER_HUB_PASS (key to pull images above limit without auth)
-
+SCRIPT_DIR="/usr/local/sbin"
 set -a
-source .env
+source "$SCRIPT_DIR"/.env
 set +a
 
 # Função para enviar notificação via webhook
