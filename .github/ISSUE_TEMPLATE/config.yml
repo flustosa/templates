@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussões Gerais
+    url: https://github.com/flustosa/templates/discussions
+    about: Use as discussões para perguntas gerais ou ideias.
