@@ -1,0 +1,15 @@
+[Unit]
+Description=Monitor de temperatura Rack
+After=network.target
+
+[Service]
+User=felipe
+Group=gpio
+WorkingDirectory=/usr/local/sbin/monitor
+Environment="PATH=/usr/local/sbin/monitor/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Environment="VIRTUAL_ENV=/usr/local/sbin/monitor/venv"
+ExecStart=/usr/local/sbin/monitor/venv/bin/python3 /usr/local/sbin/monitor/monitor.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

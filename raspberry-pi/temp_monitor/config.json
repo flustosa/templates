@@ -1,0 +1,6 @@
+{
+    "fan_pin": 17,
+    "temperatura_ligar_fan": 35.0,
+    "log_level": "INFO",
+    "timer": 30
+}

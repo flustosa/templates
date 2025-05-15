@@ -16,7 +16,7 @@ def log_throttled_state(state):
     subprocess.run(['logger', log_message])
 
 def gatus_push(status):
-    host = "10.11.12.163"
+    host = os.getenv("HOST_IP")
     port = "8080"
     url = f"/api/v1/endpoints/core_pi-throttle/external?success={status}"
     token = f'Bearer {os.getenv("GATUS_TOKEN")}'
