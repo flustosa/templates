@@ -60,7 +60,6 @@ REQUIREMENTS=(
 	sudo
 	wget
 	curl
-	ping
 )
 
 APT_PROGRAMS_TO_INSTALL=(
@@ -90,20 +89,25 @@ SNAP_PROGRAMS_TO_INSTALL=(
 
 ### REQUIREMENTS TEST ###
 
+run_as_root() {
+    if [[ "$EUID" -eq 0 ]]; then
+        # if root, no need for sudo
+        "$@"
+    else
+        # if not root, sudo
+        sudo "$@"
+    fi
+}
+
+
 connection_test () {
 	echo -e "$INFO - Testing connection..."
-	if [[ ! -x $(which ping) ]]; then
-		echo -e "$ERROR - Ping not installed, test internet connection manually."
+	if ! nc -vz google.com 80; then
+		echo -e "$ERROR - No internet connection, check the network status."
+		exit 1
 	else
-		if ! sudo ping -c 1 8.8.8.8 -q &> /dev/null; then
-			echo -e "$ERROR - No internet connection, check the network status."
-			exit 1
-		else
-			echo -e "$INFO - Internet connection working properly."
-		fi
-
+		echo -e "$INFO - Internet connection working properly."
 	fi
-	
 }
 
 
@@ -113,7 +117,7 @@ check_basic_programs () {
 		if [[ ! -x $(which $program) ]]; then
 			echo -e "$INFO - $program not installed."
 			echo -e "$INFO - Installing $program."
-			sudo apt install $program -y
+			run_as_root apt install $program -y
 		else
 			echo -e "$INFO - $program already installed."
 		fi
@@ -136,13 +140,13 @@ warnings () {
 
 add_i386_architecture () {
 	echo -e "$INFO - Adding i386 architecture..."
-	sudo dpkg --add-architecture i386
+	run_as_root dpkg --add-architecture i386
 } 
 
 
 update_repositories  () {
 	echo -e "$INFO - Updating repositories..."
-	sudo apt update
+	run_as_root apt update
 }
 
 
@@ -154,9 +158,9 @@ download_deb_packages () {
 			echo -e "$INFO - Baixando o arquivo $url_extraida..."
 			wget -c "$url" -P "$DOWNLOAD_FOLDER_PROGRAMS"
 			echo -e "$INFO - Instalando o $url_extraida..."
-			sudo dpkg -i $DOWNLOAD_FOLDER_PROGRAMS/${url##*/}
+			run_as_root dpkg -i $DOWNLOAD_FOLDER_PROGRAMS/${url##*/}
 			echo -e "$INFO - Instalando depenências..."
-			sudo apt -f install -y
+			run_as_root apt -f install -y
 		else
 			echo -e "$INFO - The program $url_extraida is already installed."
 		fi
@@ -169,7 +173,7 @@ install_apt_packages () {
 	for program in ${APT_LIST[@]}; do
 	  if ! dpkg -l | grep -q $program; then
   	    echo -e "$INFO - Instalando o $program..."
-	    sudo apt install $program -y
+	    run_as_root apt install $program -y
 	  else
 	    echo -e "$INFO - O pacote $program ja esta instalado."
 	  fi
@@ -181,13 +185,13 @@ install_snap_packages () {  	## para instalacao de aplicativos via snap, verific
 	if [[ ! -x $(which snapd) ]]; then
 		echo -e "$INFO - Snap nao esta instalado."
 		echo -e "$INFO - Instalando Snap."
-		sudo apt install snapd -y
+		run_as_root apt install snapd -y
 	else
 		echo -e "$INFO - Snap ja esta instalado."
 	fi
 	for program in ${SNAP_PROGRAMS_TO_INSTALL[@]}; do
 	  if ! snap list | grep -q $program; then
-	    sudo snap install $program
+	    run_as_root snap install $program
 	  else
 	    echo -e "$INFO - O pacote $program ja esta instalado."
 	  fi
@@ -210,11 +214,11 @@ RESPONSE="y"
 		echo -e "$INFO - O nome deve comecar com uma letra minuscula, o restante dos caracteres podem ser letras minusculas, numeros, '-' ou '_' "
 		echo -e "$ACTION - Informe o nome do usuario: "
 		read NEW_USER
-		if [[ ! $(sudo cat /etc/passwd | grep -wi $NEW_USER) ]] ; then
+		if [[ ! $(run_as_root cat /etc/passwd | grep -wi $NEW_USER) ]] ; then
 			echo -e "$INFO - Criando o usuario ${NEW_USER,,}..."
-			sudo adduser --gecos '' ${NEW_USER,,}
+			run_as_root adduser --gecos '' ${NEW_USER,,}
 			echo -e "$INFO - Incluindo usuario ${NEW_USER,,} no grupo \e[1;4msudo\e[0m..."
-			sudo usermod -aG sudo $NEW_USER
+			run_as_root usermod -aG sudo $NEW_USER
 		else
 			echo -e "$ERROR - Usuario ${NEW_USER,,} ja existe no sistema!"
 		fi
@@ -234,7 +238,7 @@ setup_git () {
  	if [[ ! $(which git) ]]; then
 		echo -e "$ERROR - Git not found! Do you want to install and continue? [Y/n]"
 		if confirm; then
-			sudo apt install git
+			run_as_root apt install git
 		else
 			return 1
 		fi
@@ -245,7 +249,7 @@ setup_git () {
 	echo -e "$ACTION - Informe o nome de usuario do SISTEMA para configurar o Git: "
 	read NEW_USER
 	USER=true
-	while [[ ! $(sudo cat /etc/passwd | grep -wi $NEW_USER) ]]
+	while [[ ! $(run_as_root cat /etc/passwd | grep -wi $NEW_USER) ]]
 	do
 			echo -e "$ERROR - Informe um nome de usuário válido, que exista no sistema!"
 			read NEW_USER
@@ -254,8 +258,8 @@ setup_git () {
 			read GIT_USER
 			echo -e "$ACTION - Informe o e-mail de usuario git: "
 			read GIT_EMAIL
-			sudo -H -u $NEW_USER bash -c "git config --global user.name ${GIT_USER}"
-			sudo -H -u $NEW_USER bash -c "git config --global user.email ${GIT_EMAIL}"
+			run_as_root -H -u $NEW_USER bash -c "git config --global user.name ${GIT_USER}"
+			run_as_root -H -u $NEW_USER bash -c "git config --global user.email ${GIT_EMAIL}"
 			USER=false
 }
 
@@ -268,7 +272,7 @@ setup_vim () {
  	if [[ ! $(which nvim) ]]; then
 		echo -e "$ERROR - Neovim não encontrado! Deseja instalar e continuar? [Y/n]"
 		if confirm; then
-			sudo apt install neovim
+			run_as_root apt install neovim
 		else
 			return 1
 		fi
@@ -279,14 +283,14 @@ setup_vim () {
 	echo -e "$ACTION - Informe o nome de usuario do SISTEMA para configurar o Vim: "
 	read NEW_USER
 	USER=true
-	while [[ ! $(sudo cat /etc/passwd | grep -wi $NEW_USER) ]]
+	while [[ ! $(run_as_root cat /etc/passwd | grep -wi $NEW_USER) ]]
 	do
 			echo -e "$ERROR - Informe um nome de usuário válido, que exista no sistema!"
 			read NEW_USER
 	done
 			echo -e "$INFO - Criando a estrutura de diretórios..."
-			sudo -H -u $NEW_USER bash -c "mkdir -p ~/.vim ~/.vim/autoload ~/.vim/backup ~/.vim/colors ~/.vim/plugged"
-			sudo -H -u $NEW_USER bash -c "curl -o ~/.vimrc https://raw.githubusercontent.com/flustosa/templates/master/.vimrc"
+			run_as_root -H -u $NEW_USER bash -c "mkdir -p ~/.vim ~/.vim/autoload ~/.vim/backup ~/.vim/colors ~/.vim/plugged"
+			run_as_root -H -u $NEW_USER bash -c "curl -o ~/.vimrc https://raw.githubusercontent.com/flustosa/templates/master/.vimrc"
 			echo -e "$INFO - Após a instalação reabrir o terminal ou abrir o VIM e realizar o comando ":source" para atualizar as configurações!" 
 
 			USER=false
@@ -300,8 +304,8 @@ create_cron () {
     CRON="30 0 * * * $CRON_PATH/autoupdate.sh"
     cp $CRON_PATH/tempcron $CRON_PATH/tempcron.copy 2>/dev/null
     rm $CRON_PATH/tempcron
-    (sudo crontab -l 2>/dev/null 1>$CRON_PATH/tempcron) && (printf "\n" >> $CRON_PATH/tempcron && printf "%s" "$CRON" >> $CRON_PATH/tempcron && printf "\n" >>$CRON_PATH/tempcron)
-    sudo crontab $CRON_PATH/tempcron
+    (run_as_root crontab -l 2>/dev/null 1>$CRON_PATH/tempcron) && (printf "\n" >> $CRON_PATH/tempcron && printf "%s" "$CRON" >> $CRON_PATH/tempcron && printf "\n" >>$CRON_PATH/tempcron)
+    run_as_root crontab $CRON_PATH/tempcron
 }
 
 setup_healthcheck_io () {
@@ -397,9 +401,9 @@ bash_update () {
 
 last_update () {
     echo -e "$INFO - Fazendo o upgrade e limpeza do sistema..."
-	sudo apt update -y && sudo apt upgrade -y
-	sudo apt autoclean
-	sudo apt autoremove -y
+	run_as_root apt update -y && run_as_root apt upgrade -y
+	run_as_root apt autoclean
+	run_as_root apt autoremove -y
 }
 
 
