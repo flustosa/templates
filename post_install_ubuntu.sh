@@ -26,6 +26,8 @@
 #     - Added more programs
 #   v1.2 14/08/2024, Felipe Lustosa:
 #     - Added git config function
+#   v1.3 20/06/2025, Felipe Lustosa:
+#     - Healthcheck updated + 
 #
 # ------------------------------------------------------------------------ #
 # Tested on:
@@ -58,6 +60,7 @@ REQUIREMENTS=(
 	sudo
 	wget
 	curl
+	ping
 )
 
 APT_PROGRAMS_TO_INSTALL=(
@@ -89,12 +92,18 @@ SNAP_PROGRAMS_TO_INSTALL=(
 
 connection_test () {
 	echo -e "$INFO - Testing connection..."
-	if ! sudo ping -c 1 8.8.8.8 -q &> /dev/null; then
-		echo -e "$ERROR - No internet connection, check the network status."
-		exit 1
+	if [[ ! -x $(which ping) ]]; then
+		echo -e "$ERROR - Ping not installed, test internet connection manually."
 	else
-		echo -e "$INFO - Internet connection working properly."
+		if ! sudo ping -c 1 8.8.8.8 -q &> /dev/null; then
+			echo -e "$ERROR - No internet connection, check the network status."
+			exit 1
+		else
+			echo -e "$INFO - Internet connection working properly."
+		fi
+
 	fi
+	
 }
 
 
@@ -304,12 +313,13 @@ setup_healthcheck_io () {
     # Use system's hostname as check's slug
     SLUG=$(hostname)
     printf "SLUG=$SLUG" >> $CRON_PATH/.env
-    
-    # Construct a ping URL and append "?create=1" at the end:
-    URL=https://hc-ping.com/$PING_KEY/$SLUG?create=1
+   
+    PARAMS="{'api_key': '$PING_KEY', 'slug': '$SLUG', 'schedule': '0 30 * * *', 'tz': 'America/Sao_Paulo'}"
+    URL="https://healthchecks.io/api/v3/checks/"
+                                                 
+    # Send success signal to Healthchecks.io     
+    curl -m 10 --retry 5 $URL --data "$PARAMS"   
 
-    # Send success signal to Healthchecks.io
-    curl -m 10 --retry 5 $URL
 }
 
 create_check_reboot () {
@@ -368,6 +378,20 @@ create_autoupdate () {
 
 }
 
+################## ATUALIZACAO FINAL ##################
+
+bash_update () {
+    echo -e "$INFO - Baixando o arquivo e atualizando o bashrc..."
+    echo -e "$ACTION - Informe o nome de usuario para atualizacao do bash: "
+    read USER
+    cp /home/$USER/.bashrc /home/$USER/.bashrc_copy
+    curl -O 
+	
+    
+
+}
+
+
 
 ################## ATUALIZACAO FINAL ##################
 
@@ -388,6 +412,7 @@ options[update_repositories]='Atualizar repositórios? [Y/N]: '
 options[add_sudo_user]='Adicionar usuário SUDO? [Y/N]: '
 options[setup_git]='Configurar usuário git? [Y/N]: '
 options[setup_vim]='Configurar o VIM? [Y/N]: '
+options[bash_update]='Configurar o bashrc? [Y/N]: '
 options[add_i386_architecture]='Adicionar arquitetura i386? [Y/N]: '
 options[download_deb_packages]='Baixar pacotes deb? [Y/N]: '
 options[install_apt_packages]='Instalar pacotes apt? [Y/N]: '
@@ -424,6 +449,6 @@ check_functions () {
 }
 
 requirementes_test 
-update_repositories
+#update_repositories
 check_functions
 warnings
