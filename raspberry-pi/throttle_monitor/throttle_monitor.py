@@ -1,9 +1,8 @@
 import datetime
-import http.client
+import requests
 import os
 import subprocess
 import time
-
 
 def get_throttled_state():
     result = subprocess.run(['vcgencmd', 'get_throttled'], stdout=subprocess.PIPE)
@@ -15,15 +14,11 @@ def log_throttled_state(state):
     log_message = f"{current_time} - Throttled State: {state}"
     subprocess.run(['logger', log_message])
 
-def gatus_push(status):
+def uptime_push(status, msg):
     host = os.getenv("HOST_IP")
-    port = "8080"
-    url = f"/api/v1/endpoints/core_pi-throttle/external?success={status}"
-    token = f'Bearer {os.getenv("GATUS_TOKEN")}'
-    conn = http.client.HTTPConnection(host, port, timeout=10)
-    header = {"Host": host, "Authorization": token}
-    conn.request("POST", url, headers=header)
-    response = conn.getresponse()
+    token = os.getenv("KUMA_TOKEN")
+    url = f"/api/push/{token}?status={status}&msg={msg}&ping=" # Uptime Kuma
+    request = requests.get(f"{host}{url}")
 
 
 def main():
@@ -36,12 +31,15 @@ def main():
         log_throttled_state(current_state)
         if current_state != 'throttled=0x0':
             log_throttled_state(current_state)
-            status = 'false'
+            status = 'down'
+            msg = 'throttled'
             previous_state = current_state
         else:
-            status = 'true'
+            status = 'up'
+            msg = "OK"
+            print(status)
         try:
-            gatus_push(status)
+            uptime_push(status, msg)
         except Exception as e:
             log_throttled_state(e)
 
@@ -51,4 +49,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
