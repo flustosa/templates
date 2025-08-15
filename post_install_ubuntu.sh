@@ -70,6 +70,8 @@ APT_PROGRAMS_TO_INSTALL=(
 	htop
 	ethtool
 	make
+	cron
+	qemu-guest-agent
 	#wakeonlan	
 	#xtail
 	#tmux
