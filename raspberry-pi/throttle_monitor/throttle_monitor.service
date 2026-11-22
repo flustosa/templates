@@ -6,6 +6,17 @@ Wants=network-online.target
 [Service]
 EnvironmentFile=/usr/local/sbin/monitor/.env
 Environment=INTERVAL=60
+# volt = tensão em mV (só Pi 5) | temp = temperatura (Pi 4 e Pi 5)
+Environment=PING_METRIC=temp
 ExecStart=/usr/local/sbin/monitor/venv/bin/python3 -u /usr/local/sbin/monitor/throttle_monitor.py "$KUMA_TOKEN" "$HOST_IP"
 Restart=always
 RestartSec=10
+# código 3 = hardware não suportado (nem Pi 4 nem Pi 5): não reiniciar
+RestartPreventExitStatus=3
+# Sem root: usuário temporário com acesso só ao necessário
+DynamicUser=yes
+SupplementaryGroups=video systemd-journal
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target
