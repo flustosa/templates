@@ -1,11 +1,11 @@
 [Unit]
 Description=Raspberry Pi Throttle Monitor
+After=network-online.target
+Wants=network-online.target
 
 [Service]
-EnvironmentFile=/usr/local/sbin/.env
-ExecStart=/usr/bin/python3 /usr/local/sbin/throttle_monitor.py "$KUMA_TOKEN" "$HOST_IP"
+EnvironmentFile=/usr/local/sbin/monitor/.env
+Environment=INTERVAL=60
+ExecStart=/usr/local/sbin/monitor/venv/bin/python3 -u /usr/local/sbin/monitor/throttle_monitor.py "$KUMA_TOKEN" "$HOST_IP"
 Restart=always
-User=root
-
-[Install]
-WantedBy=multi-user.target
+RestartSec=10
